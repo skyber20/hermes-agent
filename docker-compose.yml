@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  browser:
+    image: browserless/chrome:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - MAX_CONCURRENT_SESSIONS=5
+      - ENABLE_DEBUGGER=true
+    restart: always
+    networks:
+      - hermes-net
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  agent:
+    build: .
+    container_name: hermes-brain
+    env_file:
+      - .env
+    volumes:
+      - .:/app:ro
+      - ~/.hermes/config.yaml:/app/config.yaml:ro
+      - ~/.hermes/SOUL.md:/app/SOUL.md:ro
+      - ~/.hermes/sessions:/app/sessions:rw
+      - ~/.hermes/logs:/app/logs:rw
+      - ~/.hermes/workspaces:/app/workspaces:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - BROWSER_URL=ws://browser:3000
+    depend_on:
+      - browser
+    stdin_open: true
+    tty: true
+    restart: always
+    networks:
+      - hermes-net
+
+networks:
+  hermes-net:
+    driver: bridge      
+
+          
+    # Optional: SSL configuration if needed
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+# Uncomment the following if you need persistent logging or data
+# volumes:
+#   - ./logs:/tmp/logs
