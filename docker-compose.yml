@@ -7,6 +7,8 @@ services:
       - "3000:3000"
     environment:
       - MAX_CONCURRENT_SESSIONS=5
+      - SCREEN_WIDTH=1280
+      - SCREEN_HEIGHT=720
       - ENABLE_DEBUGGER=true
     restart: always
     networks:
@@ -23,21 +25,39 @@ services:
       - .env
     volumes:
       - .:/app:ro
+      
       - ~/.hermes/config.yaml:/app/config.yaml:ro
       - ~/.hermes/SOUL.md:/app/SOUL.md:ro
+      - ~/.hermes/state.db:/app/state.db:rw
       - ~/.hermes/sessions:/app/sessions:rw
       - ~/.hermes/logs:/app/logs:rw
-      - ~/.hermes/workspaces:/app/workspaces:rw
+      - ~/.hermes/skills:/app/skills:rw
+      - ~/.hermes/sandboxes:/app/sandboxes:rw
+      - ~/.hermes/memories:/app/memories:rw
+      
       - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      
+      - /proc/meminfo:/host/meminfo:ro
+      - /proc/loadavg:/host/loadavg:ro
+      - /proc/uptime:/host/uptime:ro
+      
+      - /home/skyber/disk_sensor:/host/disk_sensor:ro
+      - /home/skyber/workspaces/hermes:/data:rw
     environment:
       - BROWSER_URL=ws://browser:3000
-    depend_on:
+    depends_on:
       - browser
     stdin_open: true
     tty: true
     restart: always
     networks:
       - hermes-net
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
 
 networks:
   hermes-net:

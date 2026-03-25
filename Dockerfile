@@ -10,6 +10,8 @@ WORKDIR /app
 
 COPY pyproject.toml requirements.txt* ./
 
+RUN pip install --no-cache-dir browser-use playwright
+
 COPY . .
 
 RUN pip install -e .
