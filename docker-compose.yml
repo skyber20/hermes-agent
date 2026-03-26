@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   browser:
     image: browserless/chrome:latest
@@ -24,27 +22,27 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/app:ro
+      - .:/app/hermes_code:ro
       
-      - ~/.hermes/config.yaml:/app/config.yaml:ro
-      - ~/.hermes/SOUL.md:/app/SOUL.md:ro
-      - ~/.hermes/state.db:/app/state.db:rw
-      - ~/.hermes/sessions:/app/sessions:rw
-      - ~/.hermes/logs:/app/logs:rw
-      - ~/.hermes/skills:/app/skills:rw
-      - ~/.hermes/sandboxes:/app/sandboxes:rw
-      - ~/.hermes/memories:/app/memories:rw
+      - ~/.hermes/config.yaml:/app/hermes_data/config.yaml:ro
+      - ~/.hermes/SOUL.md:/app/hermes_data/SOUL.md:ro
+      - ./.env:/app/hermes_data/.env:ro
+
+      - ~/.hermes/state.db:/app/hermes_data/state.db:rw
+      - ~/.hermes/sessions:/app/hermes_data/sessions:rw
+      - ~/.hermes/logs:/app/hermes_data/logs:rw
+      - ~/.hermes/skills:/app/hermes_data/skills:rw
+      - ~/.hermes/sandboxes:/app/hermes_data/sandboxes:rw
+      - ~/.hermes/memories:/app/hermes_data/memories:rw
+      - ~/workspaces/hermes:/app/hermes_data/workspace:rw
       
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      
       - /proc/meminfo:/host/meminfo:ro
       - /proc/loadavg:/host/loadavg:ro
       - /proc/uptime:/host/uptime:ro
-      
-      - /home/skyber/disk_sensor:/host/disk_sensor:ro
-      - /home/skyber/workspaces/hermes:/data:rw
+      - ~/disk_sensor:/host/disk_sensor:ro
     environment:
       - BROWSER_URL=ws://browser:3000
     depends_on:
