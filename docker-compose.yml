@@ -1,6 +1,7 @@
 services:
   browser:
     image: browserless/chrome:latest
+    container_name: hermes_browser
     ports:
       - "3000:3000"
     environment:
@@ -24,25 +25,17 @@ services:
     volumes:
       - .:/app/hermes_code:ro
       
-      - ~/.hermes/config.yaml:/app/hermes_data/config.yaml:ro
-      - ~/.hermes/SOUL.md:/app/hermes_data/SOUL.md:ro
+      - ${HERMES_DATA_PATH}/config.yaml:/app/hermes_data/config.yaml:ro
+      - ${HERMES_DATA_PATH}/SOUL.md:/app/hermes_data/SOUL.md:ro
       - ./.env:/app/hermes_data/.env:ro
 
-      - ~/.hermes/state.db:/app/hermes_data/state.db:rw
-      - ~/.hermes/sessions:/app/hermes_data/sessions:rw
-      - ~/.hermes/logs:/app/hermes_data/logs:rw
-      - ~/.hermes/skills:/app/hermes_data/skills:rw
-      - ~/.hermes/sandboxes:/app/hermes_data/sandboxes:rw
-      - ~/.hermes/memories:/app/hermes_data/memories:rw
-      - ~/workspaces/hermes:/app/hermes_data/workspace:rw
-      
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - /proc/meminfo:/host/meminfo:ro
-      - /proc/loadavg:/host/loadavg:ro
-      - /proc/uptime:/host/uptime:ro
-      - ~/disk_sensor:/host/disk_sensor:ro
+      - ${HERMES_DATA_PATH}/state.db:/app/hermes_data/state.db:rw
+      - ${HERMES_DATA_PATH}/sessions:/app/hermes_data/sessions:rw
+      - ${HERMES_DATA_PATH}/logs:/app/hermes_data/logs:rw
+      - ${HERMES_DATA_PATH}/skills:/app/hermes_data/skills:rw
+      - ${HERMES_DATA_PATH}/sandboxes:/app/hermes_data/sandboxes:rw
+      - ${HERMES_DATA_PATH}/memories:/app/hermes_data/memories:rw
+      - ${HERMES_WORKSPACE_PATH}/hermes:/app/hermes_data/workspace:rw
     environment:
       - BROWSER_URL=ws://browser:3000
     depends_on:
