@@ -19,6 +19,9 @@ PyJWT[crypto]
 # Web tools
 firecrawl-py
 parallel-web>=0.4.2
+browser-use
+playwright
+playwright-stealth
 
 # Image generation
 fal-client

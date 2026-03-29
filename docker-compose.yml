@@ -24,7 +24,7 @@ services:
       - .env
     volumes:
       - .:/app/hermes_code:ro
-      
+
       - ${HERMES_DATA_PATH}/config.yaml:/app/hermes_data/config.yaml:ro
       - ${HERMES_DATA_PATH}/SOUL.md:/app/hermes_data/SOUL.md:ro
       - ./.env:/app/hermes_data/.env:ro
