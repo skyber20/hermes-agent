@@ -144,7 +144,7 @@ def _discover_tools():
         "tools.image_generation_tool",
         "tools.skills_tool",
         "tools.skill_manager_tool",
-        "tools.browser_tool",
+        # "tools.browser_tool",
         "tools.cronjob_tools",
         "tools.rl_training_tool",
         "tools.tts_tool",
@@ -158,6 +158,7 @@ def _discover_tools():
         "tools.send_message_tool",
         "tools.honcho_tools",
         "tools.homeassistant_tool",
+        "tools.browser_use_tool"
     ]
     import importlib
     for mod_name in _modules:

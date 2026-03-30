@@ -19,7 +19,7 @@ PyJWT[crypto]
 # Web tools
 firecrawl-py
 parallel-web>=0.4.2
-browser-use
+browser-use>=0.12.5
 playwright
 playwright-stealth
 
@@ -36,3 +36,5 @@ croniter
 python-telegram-bot>=20.0
 discord.py>=2.0
 aiohttp>=3.9.0
+langchain-openai>=1.1.12,
+

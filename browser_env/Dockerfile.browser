@@ -1,0 +1,27 @@
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    chromium \
+    xvfb \
+    fluxbox \
+    x11vnc \
+    novnc \
+    websockify \
+    dbus-x11 \
+    socat \
+    procps \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+RUN mkdir -p /src/browser_data
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 6080 9222
+
+ENTRYPOINT ["/entrypoint.sh"]

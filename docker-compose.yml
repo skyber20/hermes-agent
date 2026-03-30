@@ -1,22 +1,4 @@
 services:
-  browser:
-    image: browserless/chrome:latest
-    container_name: hermes_browser
-    ports:
-      - "3000:3000"
-    environment:
-      - MAX_CONCURRENT_SESSIONS=5
-      - SCREEN_WIDTH=1280
-      - SCREEN_HEIGHT=720
-      - ENABLE_DEBUGGER=true
-    restart: always
-    networks:
-      - hermes-net
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-
   agent:
     build: .
     container_name: hermes-brain
@@ -37,7 +19,7 @@ services:
       - ${HERMES_DATA_PATH}/memories:/app/hermes_data/memories:rw
       - ${HERMES_WORKSPACE_PATH}/hermes:/app/hermes_data/workspace:rw
     environment:
-      - BROWSER_URL=ws://browser:3000
+      - BROWSER_URL=http://browser:9222
     depends_on:
       - browser
     stdin_open: true
@@ -49,6 +31,31 @@ services:
       resources:
         limits:
           memory: 1.5G
+
+  browser:
+    build:
+      context: ./browser_env
+      dockerfile: Dockerfile.browser
+    container_name: hermes-browser
+    networks:
+      hermes-net:
+        aliases:
+          - browser
+    shm_size: '2gb'
+    volumes:
+      - browser_profiles:/src/browser_data
+    restart: always
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: hermes-tunnel
+    restart: always
+    command: tunnel --url http://browser:6080
+    networks:
+      - hermes-net
+
+volumes:
+  browser_profiles:
 
 networks:
   hermes-net:

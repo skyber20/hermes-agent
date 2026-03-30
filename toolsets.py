@@ -29,6 +29,12 @@ from typing import List, Dict, Any, Set, Optional
 # Shared tool list for CLI and all messaging platform toolsets.
 # Edit this once to update all platforms simultaneously.
 _HERMES_CORE_TOOLS = [
+    # Browser automation
+    # "browser_navigate", "browser_snapshot", "browser_click",
+    # "browser_type", "browser_scroll", "browser_back",
+    # "browser_press", "browser_close", "browser_get_images",
+    # "browser_vision", "browser_console", 
+    "internet_browser",
     # Web
     "web_search", "web_extract",
     # Terminal + process management
@@ -41,11 +47,6 @@ _HERMES_CORE_TOOLS = [
     "mixture_of_agents",
     # Skills
     "skills_list", "skill_view", "skill_manage",
-    # Browser automation
-    "browser_navigate", "browser_snapshot", "browser_click",
-    "browser_type", "browser_scroll", "browser_back",
-    "browser_press", "browser_close", "browser_get_images",
-    "browser_vision", "browser_console",
     # Text-to-speech
     "text_to_speech",
     # Planning & memory
@@ -116,11 +117,18 @@ TOOLSETS = {
     "browser": {
         "description": "Browser automation for web interaction (navigate, click, type, scroll, iframes, hold-click) with web search for finding URLs",
         "tools": [
-            "browser_navigate", "browser_snapshot", "browser_click",
-            "browser_type", "browser_scroll", "browser_back",
-            "browser_press", "browser_close", "browser_get_images",
-            "browser_vision", "browser_console", "web_search"
+            # "browser_navigate", "browser_snapshot", "browser_click",
+            # "browser_type", "browser_scroll", "browser_back",
+            # "browser_press", "browser_close", "browser_get_images",
+            # "browser_vision", "browser_console", "web_search"
+            # "internet_browser"
         ],
+        "includes": []
+    },
+
+    "browse_cmd": {
+        "description": "Advanced browser automation via browser-use",
+        "tools": ["internet_browser"],
         "includes": []
     },
     

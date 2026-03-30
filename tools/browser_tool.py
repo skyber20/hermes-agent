@@ -298,30 +298,32 @@ _cleanup_lock = threading.Lock()
 
 
 def _emergency_cleanup_all_sessions():
-    """
-    Emergency cleanup of all active browser sessions.
-    Called on process exit or interrupt to prevent orphaned sessions.
-    """
-    global _cleanup_done
-    if _cleanup_done:
-        return
-    _cleanup_done = True
+    # """
+    # Emergency cleanup of all active browser sessions.
+    # Called on process exit or interrupt to prevent orphaned sessions.
+    # """
+    # global _cleanup_done
+    # if _cleanup_done:
+    #     return
+    # _cleanup_done = True
     
-    if not _active_sessions:
-        return
+    # if not _active_sessions:
+    #     return
     
-    logger.info("Emergency cleanup: closing %s active session(s)...",
-                len(_active_sessions))
+    # logger.info("Emergency cleanup: closing %s active session(s)...",
+    #             len(_active_sessions))
 
-    try:
-        cleanup_all_browsers()
-    except Exception as e:
-        logger.error("Emergency cleanup error: %s", e)
-    finally:
-        with _cleanup_lock:
-            _active_sessions.clear()
-            _session_last_activity.clear()
-        _recording_sessions.clear()
+    # try:
+    #     cleanup_all_browsers()
+    # except Exception as e:
+    #     logger.error("Emergency cleanup error: %s", e)
+    # finally:
+    #     with _cleanup_lock:
+    #         _active_sessions.clear()
+    #         _session_last_activity.clear()
+    #     _recording_sessions.clear()
+
+    pass
 
 
 # Register cleanup via atexit only.  Previous versions installed SIGINT/SIGTERM
@@ -1657,85 +1659,89 @@ def _cleanup_old_recordings(max_age_hours=72):
 # ============================================================================
 
 def cleanup_browser(task_id: Optional[str] = None) -> None:
-    """
-    Clean up browser session for a task.
+    # """
+    # Clean up browser session for a task.
     
-    Called automatically when a task completes or when inactivity timeout is reached.
-    Closes both the agent-browser session and the Browserbase session.
+    # Called automatically when a task completes or when inactivity timeout is reached.
+    # Closes both the agent-browser session and the Browserbase session.
     
-    Args:
-        task_id: Task identifier to clean up
-    """
-    if task_id is None:
-        task_id = "default"
+    # Args:
+    #     task_id: Task identifier to clean up
+    # """
+    # if task_id is None:
+    #     task_id = "default"
     
-    logger.debug("cleanup_browser called for task_id: %s", task_id)
-    logger.debug("Active sessions: %s", list(_active_sessions.keys()))
+    # logger.debug("cleanup_browser called for task_id: %s", task_id)
+    # logger.debug("Active sessions: %s", list(_active_sessions.keys()))
     
-    # Check if session exists (under lock), but don't remove yet -
-    # _run_browser_command needs it to build the close command.
-    with _cleanup_lock:
-        session_info = _active_sessions.get(task_id)
+    # # Check if session exists (under lock), but don't remove yet -
+    # # _run_browser_command needs it to build the close command.
+    # with _cleanup_lock:
+    #     session_info = _active_sessions.get(task_id)
     
-    if session_info:
-        bb_session_id = session_info.get("bb_session_id", "unknown")
-        logger.debug("Found session for task %s: bb_session_id=%s", task_id, bb_session_id)
+    # if session_info:
+    #     bb_session_id = session_info.get("bb_session_id", "unknown")
+    #     logger.debug("Found session for task %s: bb_session_id=%s", task_id, bb_session_id)
         
-        # Stop auto-recording before closing (saves the file)
-        _maybe_stop_recording(task_id)
+    #     # Stop auto-recording before closing (saves the file)
+    #     _maybe_stop_recording(task_id)
         
-        # Try to close via agent-browser first (needs session in _active_sessions)
-        try:
-            _run_browser_command(task_id, "close", [], timeout=10)
-            logger.debug("agent-browser close command completed for task %s", task_id)
-        except Exception as e:
-            logger.warning("agent-browser close failed for task %s: %s", task_id, e)
+    #     # Try to close via agent-browser first (needs session in _active_sessions)
+    #     try:
+    #         _run_browser_command(task_id, "close", [], timeout=10)
+    #         logger.debug("agent-browser close command completed for task %s", task_id)
+    #     except Exception as e:
+    #         logger.warning("agent-browser close failed for task %s: %s", task_id, e)
         
-        # Now remove from tracking under lock
-        with _cleanup_lock:
-            _active_sessions.pop(task_id, None)
-            _session_last_activity.pop(task_id, None)
+    #     # Now remove from tracking under lock
+    #     with _cleanup_lock:
+    #         _active_sessions.pop(task_id, None)
+    #         _session_last_activity.pop(task_id, None)
         
-        # Cloud mode: close the cloud browser session via provider API
-        if bb_session_id:
-            provider = _get_cloud_provider()
-            if provider is not None:
-                try:
-                    provider.close_session(bb_session_id)
-                except Exception as e:
-                    logger.warning("Could not close cloud browser session: %s", e)
+    #     # Cloud mode: close the cloud browser session via provider API
+    #     if bb_session_id:
+    #         provider = _get_cloud_provider()
+    #         if provider is not None:
+    #             try:
+    #                 provider.close_session(bb_session_id)
+    #             except Exception as e:
+    #                 logger.warning("Could not close cloud browser session: %s", e)
         
-        # Kill the daemon process and clean up socket directory
-        session_name = session_info.get("session_name", "")
-        if session_name:
-            socket_dir = os.path.join(_socket_safe_tmpdir(), f"agent-browser-{session_name}")
-            if os.path.exists(socket_dir):
-                # agent-browser writes {session}.pid in the socket dir
-                pid_file = os.path.join(socket_dir, f"{session_name}.pid")
-                if os.path.isfile(pid_file):
-                    try:
-                        daemon_pid = int(Path(pid_file).read_text().strip())
-                        os.kill(daemon_pid, signal.SIGTERM)
-                        logger.debug("Killed daemon pid %s for %s", daemon_pid, session_name)
-                    except (ProcessLookupError, ValueError, PermissionError, OSError):
-                        logger.debug("Could not kill daemon pid for %s (already dead or inaccessible)", session_name)
-                shutil.rmtree(socket_dir, ignore_errors=True)
+    #     # Kill the daemon process and clean up socket directory
+    #     session_name = session_info.get("session_name", "")
+    #     if session_name:
+    #         socket_dir = os.path.join(_socket_safe_tmpdir(), f"agent-browser-{session_name}")
+    #         if os.path.exists(socket_dir):
+    #             # agent-browser writes {session}.pid in the socket dir
+    #             pid_file = os.path.join(socket_dir, f"{session_name}.pid")
+    #             if os.path.isfile(pid_file):
+    #                 try:
+    #                     daemon_pid = int(Path(pid_file).read_text().strip())
+    #                     os.kill(daemon_pid, signal.SIGTERM)
+    #                     logger.debug("Killed daemon pid %s for %s", daemon_pid, session_name)
+    #                 except (ProcessLookupError, ValueError, PermissionError, OSError):
+    #                     logger.debug("Could not kill daemon pid for %s (already dead or inaccessible)", session_name)
+    #             shutil.rmtree(socket_dir, ignore_errors=True)
         
-        logger.debug("Removed task %s from active sessions", task_id)
-    else:
-        logger.debug("No active session found for task_id: %s", task_id)
+    #     logger.debug("Removed task %s from active sessions", task_id)
+    # else:
+    #     logger.debug("No active session found for task_id: %s", task_id)
+
+    pass
 
 
 def cleanup_all_browsers() -> None:
-    """
-    Clean up all active browser sessions.
+    # """
+    # Clean up all active browser sessions.
     
-    Useful for cleanup on shutdown.
-    """
-    with _cleanup_lock:
-        task_ids = list(_active_sessions.keys())
-    for task_id in task_ids:
-        cleanup_browser(task_id)
+    # Useful for cleanup on shutdown.
+    # """
+    # with _cleanup_lock:
+    #     task_ids = list(_active_sessions.keys())
+    # for task_id in task_ids:
+    #     cleanup_browser(task_id)
+
+    pass
 
 
 def get_active_browser_sessions() -> Dict[str, Dict[str, str]]:
@@ -1822,96 +1828,96 @@ if __name__ == "__main__":
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
-from tools.registry import registry
+# from tools.registry import registry
 
-_BROWSER_SCHEMA_MAP = {s["name"]: s for s in BROWSER_TOOL_SCHEMAS}
+# _BROWSER_SCHEMA_MAP = {s["name"]: s for s in BROWSER_TOOL_SCHEMAS}
 
-registry.register(
-    name="browser_navigate",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_navigate"],
-    handler=lambda args, **kw: browser_navigate(url=args.get("url", ""), task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="🌐",
-)
-registry.register(
-    name="browser_snapshot",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_snapshot"],
-    handler=lambda args, **kw: browser_snapshot(
-        full=args.get("full", False), task_id=kw.get("task_id"), user_task=kw.get("user_task")),
-    check_fn=check_browser_requirements,
-    emoji="📸",
-)
-registry.register(
-    name="browser_click",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_click"],
-    handler=lambda args, **kw: browser_click(ref=args.get("ref", ""), task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="👆",
-)
-registry.register(
-    name="browser_type",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_type"],
-    handler=lambda args, **kw: browser_type(ref=args.get("ref", ""), text=args.get("text", ""), task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="⌨️",
-)
-registry.register(
-    name="browser_scroll",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_scroll"],
-    handler=lambda args, **kw: browser_scroll(direction=args.get("direction", "down"), task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="📜",
-)
-registry.register(
-    name="browser_back",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_back"],
-    handler=lambda args, **kw: browser_back(task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="◀️",
-)
-registry.register(
-    name="browser_press",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_press"],
-    handler=lambda args, **kw: browser_press(key=args.get("key", ""), task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="⌨️",
-)
-registry.register(
-    name="browser_close",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_close"],
-    handler=lambda args, **kw: browser_close(task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="🚪",
-)
-registry.register(
-    name="browser_get_images",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_get_images"],
-    handler=lambda args, **kw: browser_get_images(task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="🖼️",
-)
-registry.register(
-    name="browser_vision",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_vision"],
-    handler=lambda args, **kw: browser_vision(question=args.get("question", ""), annotate=args.get("annotate", False), task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="👁️",
-)
-registry.register(
-    name="browser_console",
-    toolset="browser",
-    schema=_BROWSER_SCHEMA_MAP["browser_console"],
-    handler=lambda args, **kw: browser_console(clear=args.get("clear", False), task_id=kw.get("task_id")),
-    check_fn=check_browser_requirements,
-    emoji="🖥️",
-)
+# registry.register(
+#     name="browser_navigate",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_navigate"],
+#     handler=lambda args, **kw: browser_navigate(url=args.get("url", ""), task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="🌐",
+# )
+# registry.register(
+#     name="browser_snapshot",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_snapshot"],
+#     handler=lambda args, **kw: browser_snapshot(
+#         full=args.get("full", False), task_id=kw.get("task_id"), user_task=kw.get("user_task")),
+#     check_fn=check_browser_requirements,
+#     emoji="📸",
+# )
+# registry.register(
+#     name="browser_click",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_click"],
+#     handler=lambda args, **kw: browser_click(ref=args.get("ref", ""), task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="👆",
+# )
+# registry.register(
+#     name="browser_type",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_type"],
+#     handler=lambda args, **kw: browser_type(ref=args.get("ref", ""), text=args.get("text", ""), task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="⌨️",
+# )
+# registry.register(
+#     name="browser_scroll",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_scroll"],
+#     handler=lambda args, **kw: browser_scroll(direction=args.get("direction", "down"), task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="📜",
+# )
+# registry.register(
+#     name="browser_back",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_back"],
+#     handler=lambda args, **kw: browser_back(task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="◀️",
+# )
+# registry.register(
+#     name="browser_press",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_press"],
+#     handler=lambda args, **kw: browser_press(key=args.get("key", ""), task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="⌨️",
+# )
+# registry.register(
+#     name="browser_close",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_close"],
+#     handler=lambda args, **kw: browser_close(task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="🚪",
+# )
+# registry.register(
+#     name="browser_get_images",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_get_images"],
+#     handler=lambda args, **kw: browser_get_images(task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="🖼️",
+# )
+# registry.register(
+#     name="browser_vision",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_vision"],
+#     handler=lambda args, **kw: browser_vision(question=args.get("question", ""), annotate=args.get("annotate", False), task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="👁️",
+# )
+# registry.register(
+#     name="browser_console",
+#     toolset="browser",
+#     schema=_BROWSER_SCHEMA_MAP["browser_console"],
+#     handler=lambda args, **kw: browser_console(clear=args.get("clear", False), task_id=kw.get("task_id")),
+#     check_fn=check_browser_requirements,
+#     emoji="🖥️",
+# )

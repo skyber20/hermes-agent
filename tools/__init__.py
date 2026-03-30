@@ -64,23 +64,27 @@ from .skill_manager_tool import (
 )
 
 # Browser automation tools (agent-browser + Browserbase)
-from .browser_tool import (
-    browser_navigate,
-    browser_snapshot,
-    browser_click,
-    browser_type,
-    browser_scroll,
-    browser_back,
-    browser_press,
-    browser_close,
-    browser_get_images,
-    browser_vision,
-    cleanup_browser,
-    cleanup_all_browsers,
-    get_active_browser_sessions,
-    check_browser_requirements,
-    BROWSER_TOOL_SCHEMAS
-)
+# from .browser_tool import (
+#     browser_navigate,
+#     browser_snapshot,
+#     browser_click,
+#     browser_type,
+#     browser_scroll,
+#     browser_back,
+#     browser_press,
+#     browser_close,
+#     browser_get_images,
+#     browser_vision,
+#     cleanup_browser,
+#     cleanup_all_browsers,
+#     get_active_browser_sessions,
+#     check_browser_requirements,
+#     BROWSER_TOOL_SCHEMAS
+# )
+
+from .browser_use_tool import run_browser_task
+
+from .browser_tool import cleanup_browser, cleanup_all_browsers
 
 # Cronjob management tools (CLI-only, hermes-cli toolset)
 from .cronjob_tools import (
