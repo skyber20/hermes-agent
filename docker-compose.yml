@@ -1,25 +1,19 @@
 services:
   agent:
-    build: .
+    build: 
+      context: ./hermes_code
+      dockerfile: Dockerfile
     container_name: hermes-brain
     env_file:
       - .env
-    volumes:
-      - .:/app/hermes_code:ro
-
-      - ${HERMES_DATA_PATH}/config.yaml:/app/hermes_data/config.yaml:ro
-      - ${HERMES_DATA_PATH}/SOUL.md:/app/hermes_data/SOUL.md:ro
-      - ./.env:/app/hermes_data/.env:ro
-
-      - ${HERMES_DATA_PATH}/state.db:/app/hermes_data/state.db:rw
-      - ${HERMES_DATA_PATH}/sessions:/app/hermes_data/sessions:rw
-      - ${HERMES_DATA_PATH}/logs:/app/hermes_data/logs:rw
-      - ${HERMES_DATA_PATH}/skills:/app/hermes_data/skills:rw
-      - ${HERMES_DATA_PATH}/sandboxes:/app/hermes_data/sandboxes:rw
-      - ${HERMES_DATA_PATH}/memories:/app/hermes_data/memories:rw
-      - ${HERMES_WORKSPACE_PATH}/hermes:/app/hermes_data/workspace:rw
     environment:
       - BROWSER_URL=http://browser:9222
+      - HERMES_HOME=/app/hermes_data
+    volumes:
+      - ./hermes_code:/app/hermes_code:ro
+      - ./hermes_data:/app/hermes_data:rw
+      - ./workspace:/app/workspace:rw
+      - ./config.example.yaml:/app/config.example.yaml:ro
     depends_on:
       - browser
     stdin_open: true
@@ -31,6 +25,14 @@ services:
       resources:
         limits:
           memory: 1.5G
+    command: >
+      bash -c "
+      if [ ! -f /app/hermes_data/config.yaml ]; then
+        echo 'Config not found, copying from example...';
+        cp /app/config.example.yaml /app/hermes_data/config.yaml;
+      fi;
+      exec python -m gateway.run
+      "
 
   browser:
     build:
@@ -59,13 +61,4 @@ volumes:
 
 networks:
   hermes-net:
-    driver: bridge      
-
-          
-    # Optional: SSL configuration if needed
-    # extra_hosts:
-    #   - "host.docker.internal:host-gateway"
-
-# Uncomment the following if you need persistent logging or data
-# volumes:
-#   - ./logs:/tmp/logs
+    driver: bridge

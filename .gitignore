@@ -13,7 +13,10 @@ __pycache__/
 .env.test
 docker-compose.override.yml
 
-test_browser.py
+hermes_code/test_browser.py
+.git
+hermes_data
+workspace
 
 export*
 __pycache__/model_tools.cpython-310.pyc

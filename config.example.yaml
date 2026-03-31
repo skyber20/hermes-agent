@@ -1,0 +1,189 @@
+model:
+  default: qwen3.5-122b
+  provider: custom
+  base_url: https://llm.lambda.coredump.ru/v1
+toolsets:
+- all
+agent:
+  max_turns: 60
+  verbose: false
+  reasoning_effort: medium
+  personalities:
+    helpful: You are a helpful, friendly AI assistant.
+    technical: You are a technical expert. Provide detailed, accurate technical information.
+terminal:
+  backend: docker
+  cwd: .
+  timeout: 180
+  docker_image: python:3.12-slim
+  singularity_image: docker://python:3.12-slim
+  modal_image: python:3.12-slim
+  daytona_image: python:3.12-slim
+  container_cpu: 1.0
+  container_memory: 2048
+  container_disk: 15360
+  container_persistent: true
+  docker_volumes:
+  lifetime_seconds: 300
+browser:
+  inactivity_timeout: 120
+  record_sessions: false
+checkpoints:
+  enabled: false
+  max_snapshots: 50
+compression:
+  enabled: true
+  threshold: 0.8
+  summary_model: google/gemini-3-flash-preview
+  summary_provider: auto
+auxiliary:
+  vision:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  web_extract:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  compression:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  session_search:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  skills_hub:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  mcp:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  flush_memories:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+display:
+  compact: false
+  personality: helpful
+  resume_display: full
+  bell_on_complete: false
+  show_reasoning: false
+  skin: default
+  tool_progress: all
+  background_process_notifications: all
+tts:
+  provider: edge
+  edge:
+    voice: en-US-AriaNeural
+  elevenlabs:
+    voice_id: pNInz6obpgDQGcFmaJgB
+    model_id: eleven_multilingual_v2
+  openai:
+    model: gpt-4o-mini-tts
+    voice: alloy
+stt:
+  enabled: true
+  provider: local
+  local:
+    model: base
+  openai:
+    model: whisper-1
+  model: whisper-1
+voice:
+  record_key: ctrl+b
+  max_recording_seconds: 120
+  auto_tts: false
+  silence_threshold: 200
+  silence_duration: 3.0
+human_delay:
+  mode: 'off'
+  min_ms: 800
+  max_ms: 2500
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2200
+  user_char_limit: 1375
+  nudge_interval: 10
+  flush_min_turns: 6
+delegation:
+  model: ''
+  provider: ''
+  base_url: ''
+  api_key: ''
+  max_iterations: 50
+  default_toolsets:
+  - terminal
+  - file
+  - web
+prefill_messages_file: ''
+honcho: {}
+timezone: ''
+discord:
+  require_mention: true
+  free_response_channels: ''
+  auto_thread: true
+command_allowlist: []
+quick_commands: {}
+personalities: {}
+security:
+  redact_secrets: true
+  tirith_enabled: true
+  tirith_path: tirith
+  tirith_timeout: 5
+  tirith_fail_open: true
+_config_version: 8
+session_reset:
+  mode: both
+  idle_minutes: 150
+  at_hour: 5
+skills:
+  creation_nudge_interval: 15
+platform_toolsets:
+  cli:
+  - hermes-cli
+  telegram:
+  - hermes-telegram
+  discord:
+  - hermes-discord
+  whatsapp:
+  - hermes-whatsapp
+  slack:
+  - hermes-slack
+  signal:
+  - hermes-signal
+  homeassistant:
+  - hermes-homeassistant
+code_execution:
+  timeout: 300
+  max_tool_calls: 50
+
+# ── Fallback Model ────────────────────────────────────────────────────
+# Automatic provider failover when primary is unavailable.
+# Uncomment and configure to enable. Triggers on rate limits (429),
+# overload (529), service errors (503), or connection failures.
+#
+# Supported providers:
+#   openrouter   (OPENROUTER_API_KEY)  — routes to any model
+#   openai-codex (OAuth — hermes login) — OpenAI Codex
+#   nous         (OAuth — hermes login) — Nous Portal
+#   zai          (ZAI_API_KEY)         — Z.AI / GLM
+#   kimi-coding  (KIMI_API_KEY)        — Kimi / Moonshot
+#   minimax      (MINIMAX_API_KEY)     — MiniMax
+#   minimax-cn   (MINIMAX_CN_API_KEY)  — MiniMax (China)
+#
+# For custom OpenAI-compatible endpoints, add base_url and api_key_env.
+#
+# fallback_model:
+#   provider: openrouter
+#   model: anthropic/claude-sonnet-4

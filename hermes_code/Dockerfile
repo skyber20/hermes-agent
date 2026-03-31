@@ -20,5 +20,3 @@ RUN uv sync --frozen --no-install-project --extra tg
 COPY . .
 
 RUN uv sync --frozen --extra tg
-
-CMD ["python", "-m", "gateway.run"]
