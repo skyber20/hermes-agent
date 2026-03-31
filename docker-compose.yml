@@ -52,7 +52,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: hermes-tunnel
     restart: always
-    command: tunnel --url http://browser:6080
+    command: tunnel --protocol http2 --url http://browser:6080
     networks:
       - hermes-net
 
