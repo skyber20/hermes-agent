@@ -17,10 +17,20 @@ socat TCP-LISTEN:9222,fork,reuseaddr TCP:127.0.0.1:9223 &
 
 echo "--- Запуск Chromium в режиме Local-Only (Port 9223) ---"
 
+cleanup() {
+  echo "Получен сигнал завершения, закрываем Chromium..."
+  kill $CHROME_PID 2>/dev/null || true
+  kill $XVFB_PID 2>/dev/null || true
+  kill $DBUS_PID 2>/dev/null || true
+  exit 0
+}
+
+trap cleanup SIGTERM SIGINT
+
 while true; do
   rm -f /src/browser_data/SingletonLock
   
-  chromium \
+  DISPLAY=:99 chromium \
     --no-sandbox \
     --disable-dev-shm-usage \
     --remote-debugging-port=9223 \
@@ -34,8 +44,11 @@ while true; do
     --mute-audio \
     --no-default-browser-check \
     --disable-software-rasterizer \
-    --disable-features=site-per-process
+    --disable-features=site-per-process &
 
-  echo "Chromium упал или был закрыт агентом, рестарт через 2 секунды..."
+  CHROME_PID=$!
+  wait $CHROME_PID 2>/dev/null || true
+
+  echo "Chromium завершен, рестарт через 2 секунды..."
   sleep 2
 done

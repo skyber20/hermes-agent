@@ -53,6 +53,8 @@ services:
 
   tunnel:
     image: cloudflare/cloudflared:latest
+    profiles:
+      - remote
     container_name: hermes-tunnel
     restart: always
     command: tunnel --protocol http2 --url http://browser:6080 --no-tls-verify
