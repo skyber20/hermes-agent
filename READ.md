@@ -13,7 +13,7 @@ BROWSER_VIEW_URL заполняется после запуска
 #### Запуск удаленно
 
 ```commandline
-docker compose --profile remote up
+docker compose --profile remote up --build
 docker compose logs tunnel
 ```
 После команды логов листаешь терминал и ищешь ссылку https в рамке. Её вписываешь в переменную BROWSER_VIEW_URL.
