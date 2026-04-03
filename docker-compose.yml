@@ -15,7 +15,8 @@ services:
       - ./workspace:/app/workspace:rw
       - ./config.example.yaml:/app/config.example.yaml:ro
     depends_on:
-      - browser
+      browser:
+        condition: service_healthy
     stdin_open: true
     tty: true
     restart: always
@@ -50,9 +51,17 @@ services:
     volumes:
       - browser_profiles:/src/browser_data
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9222/json/version >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
 
   tunnel:
     image: cloudflare/cloudflared:latest
+    profiles:
+      - remote
     container_name: hermes-tunnel
     restart: always
     command: tunnel --protocol http2 --url http://browser:6080 --no-tls-verify
