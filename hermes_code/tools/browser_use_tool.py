@@ -18,14 +18,15 @@ async def run_browser_task(task):
         cdp_url = f"http://{browser_host}:{browser_port}"
 
     browser = Browser(cdp_url=cdp_url)
+
+    # Для подключения к Chrome на виртуальной машине раскомментируй
     # browser = Browser(
-    #     config=BrowserConfig(
-    #         chrome_instance_path="/usr/bin/google-chrome",  # путь к Chrome на ВМ
-    #         # Для Windows: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-    #         # Для macOS: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    #     )
+    #     executable_path="/usr/bin/google-chrome",  # Linux
+    #     # Windows: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    #     # macOS: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     # )
-    # для хрома на вирутальной машине
+    # или
+    # browser = Browser.from_system_chrome() для автоопределения
 
     llm = ChatOpenAI(
         model=os.getenv("MODEL_DEFAULT", "qwen3.5-122b"),
