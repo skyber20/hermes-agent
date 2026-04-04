@@ -2,14 +2,63 @@ import json
 import os
 import asyncio
 import socket
+import logging
+from telegram import Bot
+from telegram.constants import ParseMode
 from browser_use import Agent, Browser, ChatOpenAI
 from tools.registry import registry
 
 
-async def run_browser_task(task):
+logger = logging.getLogger("hermes.browser_use_tool")
+
+
+def get_chat_id(honcho_session_key: str) -> str:
+    if not honcho_session_key or not isinstance(honcho_session_key, str):
+        logger.warning("нет honcho_session_key")
+        return None
+    
+    if ':' in honcho_session_key:
+        logger.info("получен honcho_session_key")
+        return honcho_session_key.split(':')[-1]
+    
+    logger.warning("нет honcho_session_key")
+    return None
+
+
+async def notify_user_vnc(honcho_session_key: str, vnc_url: str):
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = get_chat_id(honcho_session_key)
+    
+    if not token or not chat_id:
+        logger.warning("Сообщение не отправлено: отсутствует токен или chat_id")
+        return
+
+    try:
+        bot = Bot(token=token)
+        text = (
+            f"🌐 *Запуск браузера*\n\n"
+            f"Ты можешь наблюдать за моими действиями здесь:\n"
+            f"🔗 [ОТКРЫТЬ ТРАНСЛЯЦИЮ]({vnc_url})"
+        )
+        await bot.send_message(
+            chat_id=chat_id,
+            text=text,
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True
+        )
+
+        logger.info(f"Уведомление отправлено в Telegram для chat_id: {chat_id}")
+    except Exception as e:
+        logger.warning(f"Ошибка при отправке уведомления в Telegram: {str(e)}")
+
+
+async def run_browser_task(task: str, honcho_session_key: str):
     browser_host = "browser"
     browser_port = 9222
-    BROWSER_VIEW_URL = os.getenv("BROWSER_VIEW_URL", "")
+    vnc_url = os.getenv("BROWSER_VIEW_URL", "")
+
+    if honcho_session_key:
+        asyncio.create_task(notify_user_vnc(honcho_session_key, vnc_url))
     
     try:
         browser_ip = socket.gethostbyname(browser_host)
@@ -46,12 +95,11 @@ async def run_browser_task(task):
         history = await agent.run()
         final_result = history.final_result()
 
-        response = {
+        return json.dumps({
             "success": True,
             "result": final_result,
-            "browser_view": BROWSER_VIEW_URL
-        }
-        return json.dumps(response, ensure_ascii=False)
+            "vnc_url": vnc_url
+        }, ensure_ascii=False)
         
     except Exception as e:
         return json.dumps({
@@ -61,10 +109,7 @@ async def run_browser_task(task):
         
     finally:
         if browser:
-            try:
-                await browser.close()
-            except Exception:
-                pass
+            await browser.stop()
 
 
 registry.register(
@@ -72,24 +117,15 @@ registry.register(
     toolset="browse_cmd", 
     schema={
         "name": "internet_browser",
-        "description": (
-            "ГЛАВНЫЙ ИНСТРУМЕНТ ДЛЯ ВЕБ-СЕРФИНГА. Вызывай этот инструмент НАПРЯМУЮ (через стандартный tool call/function call). "
-            "КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО использовать `execute_code` или `delegate_task` для работы с браузером. "
-            "Не пиши Python-скрипты! Просто передай в этот инструмент параметр `task`. "
-            "Используй для любых задач в интернете: поиск товаров (Wildberries, Ozon), чтение статей, клики, навигация."
-        ),
+        "description": "ГЛАВНЫЙ ИНСТРУМЕНТ ДЛЯ ВЕБ-СЕРФИНГА. Вызывай напрямую.",
         "parameters": {
             "type": "object",
             "properties": {
-                "task": {
-                    "type": "string", 
-                    "description": "Подробная задача на естественном языке. Например: 'Зайди на wildberries.ru, найди черную футболку и верни цену'."
-                }
+                "task": {"type": "string", "description": "Задача для браузера"}
             },
             "required": ["task"]
         }
     },
- 
-    handler=lambda args, **kw: asyncio.run(run_browser_task(args.get("task"))),
+    handler=lambda args, **kw: asyncio.run(run_browser_task(args.get("task", ""), kw.get("honcho_session_key", ""))),
     emoji="🌐",
 )
