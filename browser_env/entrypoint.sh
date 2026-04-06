@@ -9,6 +9,7 @@ VNC_PORT="${VNC_PORT:-5900}"
 NOVNC_PORT="${NOVNC_PORT:-6080}"
 CHROME_LOCAL_DEBUG_PORT="${CHROME_LOCAL_DEBUG_PORT:-9223}"
 CHROME_PUBLIC_DEBUG_PORT="${CHROME_PUBLIC_DEBUG_PORT:-9222}"
+BROWSER_USE_RPC_PORT="${BROWSER_USE_RPC_PORT:-8787}"
 CHROME_PROFILE_DIR="${CHROME_PROFILE_DIR:-/src/browser_data}"
 
 MAX_RESTARTS="${MAX_RESTARTS:-10}"
@@ -119,6 +120,7 @@ start_bg fluxbox
 start_bg x11vnc -display "$DISPLAY" -rfbport "$VNC_PORT" -nopw -listen 0.0.0.0 -xkb -forever -shared
 start_bg websockify --web=/usr/share/novnc/ "$NOVNC_PORT" "localhost:${VNC_PORT}"
 start_bg socat "TCP-LISTEN:${CHROME_PUBLIC_DEBUG_PORT},fork,reuseaddr" "TCP:127.0.0.1:${CHROME_LOCAL_DEBUG_PORT}"
+start_bg python3 -u /src/browser_use_runner.py
 
 if ! wait_for_port 127.0.0.1 "$VNC_PORT" 20; then
   log "fatal: x11vnc did not open port ${VNC_PORT}"
@@ -128,8 +130,12 @@ if ! wait_for_port 127.0.0.1 "$NOVNC_PORT" 20; then
   log "fatal: websockify did not open port ${NOVNC_PORT}"
   exit 1
 fi
+if ! wait_for_port 127.0.0.1 "$BROWSER_USE_RPC_PORT" 20; then
+  log "fatal: browser-use RPC did not open port ${BROWSER_USE_RPC_PORT}"
+  exit 1
+fi
 
-log "browser infrastructure is ready (noVNC:${NOVNC_PORT}, DevTools proxy:${CHROME_PUBLIC_DEBUG_PORT})"
+log "browser infrastructure is ready (noVNC:${NOVNC_PORT}, DevTools proxy:${CHROME_PUBLIC_DEBUG_PORT}, browser-use RPC:${BROWSER_USE_RPC_PORT})"
 
 while true; do
   for pid in "${PIDS[@]}"; do

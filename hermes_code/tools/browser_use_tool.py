@@ -1,61 +1,40 @@
 import json
 import os
-import asyncio
-import socket
-from browser_use import Agent, Browser, ChatOpenAI
+from urllib import error, request
 from tools.registry import registry
 
 
-async def run_browser_task(task):
-    browser_host = "browser"
-    browser_port = 9222
-    BROWSER_VIEW_URL = os.getenv("BROWSER_VIEW_URL", "")
-    
-    try:
-        browser_ip = socket.gethostbyname(browser_host)
-        cdp_url = f"http://{browser_ip}:{browser_port}"
-    except Exception:
-        cdp_url = f"http://{browser_host}:{browser_port}"
+def run_browser_task(task):
+    if not task or not str(task).strip():
+        return json.dumps({"success": False, "error": "Task is required"}, ensure_ascii=False)
 
-    browser = Browser(cdp_url=cdp_url)
-
-    llm = ChatOpenAI(
-        model=os.getenv("MODEL_DEFAULT", "qwen3.5-122b"),
-        api_key=os.getenv("OPENAI_API_KEY"),
-        base_url=os.getenv("OPENAI_BASE_URL"),
-        temperature=0.0,
-    )
-
-    agent = Agent(
-        task=task,
-        llm=llm,
-        browser=browser,
-        use_vision=False
-    )
+    rpc_url = os.getenv("BROWSER_USE_RPC_URL", "http://browser:8787/run")
+    timeout_sec = int(os.getenv("BROWSER_USE_RPC_TIMEOUT", "900"))
+    payload = json.dumps({"task": task}).encode("utf-8")
+    req = request.Request(rpc_url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
 
     try:
-        history = await agent.run()
-        final_result = history.final_result()
-
-        response = {
-            "success": True,
-            "result": final_result,
-            "browser_view": BROWSER_VIEW_URL
-        }
-        return json.dumps(response, ensure_ascii=False)
-        
-    except Exception as e:
-        return json.dumps({
-            "success": False, 
-            "error": f"Browser automation failed: {str(e)}"
-        }, ensure_ascii=False)
-        
-    finally:
-        if browser:
-            try:
-                await browser.close()
-            except Exception:
-                pass
+        with request.urlopen(req, timeout=timeout_sec) as resp:
+            body = resp.read().decode("utf-8")
+            return body
+    except error.HTTPError as http_err:
+        body = http_err.read().decode("utf-8", errors="replace")
+        return json.dumps(
+            {
+                "success": False,
+                "error": f"browser-use RPC returned HTTP {http_err.code}",
+                "details": body,
+            },
+            ensure_ascii=False,
+        )
+    except Exception as err:
+        return json.dumps(
+            {
+                "success": False,
+                "error": f"browser-use RPC request failed: {err}",
+            },
+            ensure_ascii=False,
+        )
 
 
 registry.register(
@@ -81,6 +60,6 @@ registry.register(
         }
     },
  
-    handler=lambda args, **kw: asyncio.run(run_browser_task(args.get("task"))),
+    handler=lambda args, **kw: run_browser_task(args.get("task")),
     emoji="🌐",
 )

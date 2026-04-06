@@ -8,6 +8,7 @@ services:
       - .env
     environment:
       - BROWSER_URL=http://browser:9222
+      - BROWSER_USE_RPC_URL=http://browser:8787/run
       - HERMES_HOME=/app/hermes_data
     volumes:
       - ./hermes_code:/app/hermes_code:ro
@@ -40,6 +41,8 @@ services:
       context: ./browser_env
       dockerfile: Dockerfile.browser
     container_name: hermes-browser
+    env_file:
+      - .env
     ports:
       - "6080:6080"
       - "9222:9222"
@@ -52,7 +55,7 @@ services:
       - browser_profiles:/src/browser_data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9222/json/version >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9222/json/version >/dev/null && curl -fsS http://127.0.0.1:8787/health >/dev/null || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 12
