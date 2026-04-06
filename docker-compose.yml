@@ -1,0 +1,84 @@
+services:
+  agent:
+    build: 
+      context: ./hermes_code
+      dockerfile: Dockerfile
+    container_name: hermes-brain
+    sysctls:
+      - net.ipv4.tcp_keepalive_time=60
+      - net.ipv4.tcp_keepalive_intvl=10
+      - net.ipv4.tcp_keepalive_probes=3
+    env_file:
+      - .env
+    environment:
+      - BROWSER_URL=http://browser:9222
+      - HERMES_HOME=/app/hermes_data
+    volumes:
+      - ./hermes_code:/app/hermes_code:ro
+      - ./hermes_data:/app/hermes_data:rw
+      - ./workspace:/app/workspace:rw
+      - ./config.example.yaml:/app/config.example.yaml:ro
+    depends_on:
+      browser:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'python -m gateway.run' || exit 1"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+    networks:
+      - hermes-net
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+    command: >
+      bash -c "
+      if [ ! -f /app/hermes_data/config.yaml ]; then
+        echo 'Config not found, copying from example...';
+        cp /app/config.example.yaml /app/hermes_data/config.yaml;
+      fi;
+      exec python -m gateway.run
+      "
+
+  browser:
+    build:
+      context: ./browser_env
+      dockerfile: Dockerfile.browser
+    container_name: hermes-browser
+    ports:
+      - "6080:6080"
+      - "9222:9222"
+    networks:
+      hermes-net:
+        aliases:
+          - browser
+    shm_size: '2gb'
+    volumes:
+      - browser_profiles:/src/browser_data
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9222/json/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: hermes-tunnel
+    restart: always
+    command: tunnel --protocol http2 --url http://browser:6080 --no-tls-verify
+    networks:
+      - hermes-net
+
+volumes:
+  browser_profiles:
+
+networks:
+  hermes-net:
+    driver: bridge

@@ -1,55 +1,64 @@
-# ---> macOS
-# General
-.DS_Store
-.AppleDouble
-.LSOverride
-# Icon must end with two \r
-Icon
+/venv/
+/_pycache/
+*.pyc*
+__pycache__/
+.venv/
+.vscode/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.test
+docker-compose.override.yml
 
+hermes_code/test_browser.py
+.git
+.github
+.idea
+hermes_data
+workspace
 
-# Thumbnails
-._*
+export*
+__pycache__/model_tools.cpython-310.pyc
+__pycache__/web_tools.cpython-310.pyc
+logs/
+data/
+.pytest_cache/
+tmp/
+temp_vision_images/
+hermes-*/*
+examples/
+tests/quick_test_dataset.jsonl
+tests/sample_dataset.jsonl
+run_datagen_kimik2-thinking.sh
+run_datagen_megascience_glm4-6.sh
+run_datagen_sonnet.sh
+source-data/*
+run_datagen_megascience_glm4-6.sh
+data/*
+node_modules/
+browser-use/
+agent-browser/
+# Private keys
+*.ppk
+*.pem
+privvy*
+images/
+__pycache__/
+hermes_agent.egg-info/
+wandb/
+testlogs
 
-# Files that might appear in the root of a volume
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
+# CLI config (may contain sensitive SSH paths)
+cli-config.yaml
 
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
+# Skills Hub state (lives in ~/.hermes/skills/.hub/ at runtime, but just in case)
+skills/.hub/
+ignored/
+.worktrees/
+environments/benchmarks/evals/
 
-# ---> Windows
-# Windows thumbnail cache files
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-
-# Dump file
-*.stackdump
-
-# Folder config file
-[Dd]esktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
-*.idea
+# Release script temp files
+.release_notes.md
