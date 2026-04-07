@@ -1,10 +1,12 @@
 from enum import Enum
-from typing import Optional, Any
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 
 class TaskStatus(str, Enum):
+    """Состояние задачи браузерного агента."""
+
     queued = "queued"
     running = "running"
     succeeded = "succeeded"
@@ -12,30 +14,38 @@ class TaskStatus(str, Enum):
 
 
 class BrowserTaskRequest(BaseModel):
-    task: str = Field(..., description="Задача для браузера")
+    """Запрос на запуск задачи в browser-use агенте."""
+
+    task: str = Field(..., description="Текстовая задача для browser-use агента")
     timeout: int = Field(300, description="Максимальное время выполнения задачи в секундах")
-    metadata: dict[str, Any] | None = Field(default=None, description="Метаданные клиента")
+    metadata: dict[str, Any] | None = Field(default=None, description="Дополнительные метаданные клиента")
 
 
 class BrowserTaskAcceptedResponse(BaseModel):
+    """Ответ о том, что задача принята в обработку."""
+
     task_id: str
     status: TaskStatus
 
 
 class BrowserTaskStatusResponse(BaseModel):
+    """Текущий статус задачи и временные отметки её выполнения."""
+
     task_id: str
     status: TaskStatus
-    create_at: float
-    started_at: float | None = None
-    finished_at: float | None = None
-    error: str | None = None
+    create_at: float = Field(..., description="Время создания задачи в Unix timestamp")
+    started_at: float | None = Field(default=None, description="Время начала выполнения в Unix timestamp")
+    finished_at: float | None = Field(default=None, description="Время завершения выполнения в Unix timestamp")
+    error: str | None = Field(default=None, description="Текст ошибки, если задача завершилась с ошибкой")
 
 
 class BrowserTaskResultResponse(BaseModel):
+    """Финальный результат выполнения задачи в browser-use."""
+
     task_id: str
     status: TaskStatus
-    success: bool
-    execution_time: float
-    result: str | None = None
-    error: str | None = None
-    raw_response: dict[str, Any] | None = None
+    success: bool = Field(..., description="Успешно ли выполнена задача")
+    execution_time: float = Field(..., description="Фактическое время выполнения в секундах")
+    result: str | None = Field(default=None, description="Итоговый текстовый результат")
+    error: str | None = Field(default=None, description="Текст ошибки, если выполнение не удалось")
+    raw_response: dict[str, Any] | None = Field(default=None, description="Сырой ответ от browser-use RPC")
