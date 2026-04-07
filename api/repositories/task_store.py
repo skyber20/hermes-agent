@@ -2,10 +2,9 @@ import time
 import uuid
 from asyncio import Lock
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any
 
-from api.schemas import TaskStatus
+from api.domain.task_status import TaskStatus
 
 
 @dataclass
@@ -55,15 +54,23 @@ class TaskStore:
             rec.started_at = time.time()
             return rec
 
-    async def set_done(self, task_id: str, success: bool, raw_response: dict[str, Any] | None,
-                       error: str | None) -> TaskRecord | None:
+    async def set_done(
+            self,
+            task_id: str,
+            success: bool,
+            raw_response: dict[str, Any] | None,
+            error: str | None,
+            result: str | None = None,
+    ) -> TaskRecord | None:
         async with self._lock:
             rec = self._tasks.get(task_id)
             if rec is None:
                 return None
             rec.finished_at = time.time()
             rec.raw_response = raw_response
-            rec.error = error or (raw_response.get("error") if isinstance(raw_response, dict) else None)
+            rec.error = error if error is not None else (
+                raw_response.get("error") if isinstance(raw_response, dict) else None)
+            rec.result = result if result is not None else (
+                raw_response.get("result") if isinstance(raw_response, dict) else None)
             rec.status = TaskStatus.succeeded if success else TaskStatus.failed
-
             return rec

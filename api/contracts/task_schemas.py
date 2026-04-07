@@ -1,16 +1,8 @@
-from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-
-class TaskStatus(str, Enum):
-    """Состояние задачи браузерного агента."""
-
-    queued = "queued"
-    running = "running"
-    succeeded = "succeeded"
-    failed = "failed"
+from api.domain.task_status import TaskStatus
 
 
 class BrowserTaskRequest(BaseModel):
@@ -29,7 +21,7 @@ class BrowserTaskAcceptedResponse(BaseModel):
 
 
 class BrowserTaskStatusResponse(BaseModel):
-    """Текущий статус задачи и временные отметки её выполнения."""
+    """Текущий статус задачи и временные отметки ее выполнения."""
 
     task_id: str
     status: TaskStatus
