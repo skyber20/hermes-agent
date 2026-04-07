@@ -29,7 +29,7 @@ async def run_browser_task(task):
         temperature=0.0,
     )
 
-    agent = Agent(task=task, llm=llm, browser=browser, use_vision=False)
+    agent = Agent(task=task, llm=llm, browser=browser)
 
     try:
         history = await agent.run()
@@ -99,4 +99,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
