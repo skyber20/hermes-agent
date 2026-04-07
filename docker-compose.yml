@@ -1,6 +1,6 @@
 services:
   agent:
-    build: 
+    build:
       context: ./hermes_code
       dockerfile: Dockerfile
     container_name: hermes-brain
@@ -35,7 +35,6 @@ services:
       fi;
       exec python -m gateway.run
       "
-
   browser:
     build:
       context: ./browser_env
@@ -55,11 +54,30 @@ services:
       - browser_profiles:/src/browser_data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9222/json/version >/dev/null && curl -fsS http://127.0.0.1:8787/health >/dev/null || exit 1"]
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:9222/json/version >/dev/null && curl -fsS http://127.0.0.1:8787/health >/dev/null || exit 1" ]
       interval: 10s
       timeout: 3s
       retries: 12
       start_period: 20s
+
+  browser-api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: hermes-browser-api
+    environment:
+      - BROWSER_USE_RPC_URL=http://browser:8787/run
+      - BROWSER_API_HOST=0.0.0.0
+      - BROWSER_API_PORT=8088
+      - BROWSER_API_MAX_CONCURRENCY=2
+    depends_on:
+      browser:
+        condition: service_healthy
+    ports:
+      - "8088:8088"
+    restart: always
+    networks:
+      - hermes-net
 
   tunnel:
     image: cloudflare/cloudflared:latest
