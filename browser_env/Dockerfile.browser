@@ -4,6 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
+    python3 \
+    python3-pip \
     xvfb \
     fluxbox \
     x11vnc \
@@ -19,9 +21,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /src
 RUN mkdir -p /src/browser_data
 
+RUN python3 -m pip install --no-cache-dir --break-system-packages \
+    "browser-use>=0.12.5" \
+    "langchain-openai>=0.3.0"
+
 COPY entrypoint.sh /entrypoint.sh
+COPY browser_use_runner.py /src/browser_use_runner.py
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 6080 9222
+EXPOSE 6080 9222 8787
 
 ENTRYPOINT ["/entrypoint.sh"]
