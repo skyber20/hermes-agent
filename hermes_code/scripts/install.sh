@@ -874,41 +874,14 @@ install_node_deps() {
     fi
 
     if [ -f "$INSTALL_DIR/package.json" ]; then
-        log_info "Installing Node.js dependencies (browser tools)..."
+        log_info "Installing Node.js dependencies..."
         cd "$INSTALL_DIR"
         npm install --silent 2>/dev/null || {
-            log_warn "npm install failed (browser tools may not work)"
+            log_warn "npm install failed (some Node.js helpers may not work)"
         }
         log_success "Node.js dependencies installed"
 
-        # Install Playwright browser + system dependencies.
-        # Playwright's install-deps only supports apt/dnf/zypper natively.
-        # For Arch/Manjaro we install the system libs via pacman first.
-        log_info "Installing browser engine (Playwright Chromium)..."
-        case "$DISTRO" in
-            arch|manjaro)
-                if command -v pacman &> /dev/null; then
-                    log_info "Arch/Manjaro detected — installing Chromium system dependencies via pacman..."
-                    if command -v sudo &> /dev/null && sudo -n true 2>/dev/null; then
-                        sudo NEEDRESTART_MODE=a pacman -S --noconfirm --needed \
-                            nss atk at-spi2-core cups libdrm libxkbcommon mesa pango cairo alsa-lib >/dev/null 2>&1 || true
-                    elif [ "$(id -u)" -eq 0 ]; then
-                        pacman -S --noconfirm --needed \
-                            nss atk at-spi2-core cups libdrm libxkbcommon mesa pango cairo alsa-lib >/dev/null 2>&1 || true
-                    else
-                        log_warn "Cannot install browser deps without sudo. Run manually:"
-                        log_warn "  sudo pacman -S nss atk at-spi2-core cups libdrm libxkbcommon mesa pango cairo alsa-lib"
-                    fi
-                fi
-                cd "$INSTALL_DIR" && npx playwright install chromium 2>/dev/null || true
-                ;;
-            *)
-                log_info "Playwright may request sudo to install browser system dependencies (shared libraries)."
-                log_info "This is standard Playwright setup — Hermes itself does not require root access."
-                cd "$INSTALL_DIR" && npx playwright install --with-deps chromium 2>/dev/null || true
-                ;;
-        esac
-        log_success "Browser engine installed"
+        log_info "Skipping local Playwright/Chromium bootstrap (browser automation runs in browser container)"
     fi
 
     # Install WhatsApp bridge dependencies

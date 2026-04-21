@@ -1,0 +1,2 @@
+playwright>=1.40.0,<2.0.0
+browser-use>=0.1.0,<1.0.0
