@@ -4936,6 +4936,15 @@ class GatewayRunner:
             """Callback invoked by agent when a tool is called."""
             if not progress_queue:
                 return
+
+            # Long-running tools can emit already-formatted live updates.
+            # Keep these out of the normal "tool(args)" formatter so Telegram
+            # receives readable, compact lines in the edited progress message.
+            if isinstance(args, dict) and args.get("_browser_live"):
+                msg = (preview or "").strip()
+                if msg:
+                    progress_queue.put(msg)
+                return
             
             # "new" mode: only report when tool changes
             if progress_mode == "new" and tool_name == last_tool[0]:
@@ -4990,6 +4999,25 @@ class GatewayRunner:
             if not adapter:
                 return
 
+            max_progress_chars = int(os.getenv("HERMES_TOOL_PROGRESS_MAX_CHARS", "3500"))
+
+            def _progress_text(lines):
+                text = "\n".join(str(line) for line in lines if str(line).strip())
+                if len(text) <= max_progress_chars:
+                    return text
+
+                kept = []
+                current_len = len("…\n")
+                for line in reversed(lines):
+                    line = str(line)
+                    next_len = current_len + len(line) + (1 if kept else 0)
+                    if next_len > max_progress_chars:
+                        break
+                    kept.append(line)
+                    current_len = next_len
+                kept.reverse()
+                return "…\n" + "\n".join(kept)
+
             progress_lines = []      # Accumulated tool lines
             progress_msg_id = None   # ID of the progress message to edit
             can_edit = True          # False once an edit fails (platform doesn't support it)
@@ -5010,7 +5038,7 @@ class GatewayRunner:
 
                     if can_edit and progress_msg_id is not None:
                         # Try to edit the existing progress message
-                        full_text = "\n".join(progress_lines)
+                        full_text = _progress_text(progress_lines)
                         result = await adapter.edit_message(
                             chat_id=source.chat_id,
                             message_id=progress_msg_id,
@@ -5024,7 +5052,7 @@ class GatewayRunner:
                     else:
                         if can_edit:
                             # First tool: send all accumulated text as new message
-                            full_text = "\n".join(progress_lines)
+                            full_text = _progress_text(progress_lines)
                             result = await adapter.send(chat_id=source.chat_id, content=full_text, metadata=_progress_metadata)
                         else:
                             # Editing unsupported: send just this line
@@ -5053,7 +5081,7 @@ class GatewayRunner:
                             break
                     # Final edit with all remaining tools (only if editing works)
                     if can_edit and progress_lines and progress_msg_id:
-                        full_text = "\n".join(progress_lines)
+                        full_text = _progress_text(progress_lines)
                         try:
                             await adapter.edit_message(
                                 chat_id=source.chat_id,

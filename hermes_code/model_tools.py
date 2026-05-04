@@ -374,6 +374,7 @@ def handle_function_call(
     enabled_tools: Optional[List[str]] = None,
     honcho_manager: Optional[Any] = None,
     honcho_session_key: Optional[str] = None,
+    tool_progress_callback: Optional[Any] = None,
 ) -> str:
     """
     Main function call dispatcher that routes calls to the tool registry.
@@ -387,6 +388,8 @@ def handle_function_call(
                        execute_code uses this list to determine which sandbox
                        tools to generate.  Falls back to the process-global
                        ``_last_resolved_tool_names`` for backward compat.
+        tool_progress_callback: Optional gateway/CLI progress callback that
+                       long-running tools can use for live status updates.
 
     Returns:
         Function result as a JSON string.
@@ -420,6 +423,7 @@ def handle_function_call(
                 enabled_tools=sandbox_enabled,
                 honcho_manager=honcho_manager,
                 honcho_session_key=honcho_session_key,
+                tool_progress_callback=tool_progress_callback,
             )
         else:
             result = registry.dispatch(
@@ -428,6 +432,7 @@ def handle_function_call(
                 user_task=user_task,
                 honcho_manager=honcho_manager,
                 honcho_session_key=honcho_session_key,
+                tool_progress_callback=tool_progress_callback,
             )
 
         try:
