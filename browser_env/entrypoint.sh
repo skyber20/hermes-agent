@@ -11,6 +11,7 @@ CHROME_LOCAL_DEBUG_PORT="${CHROME_LOCAL_DEBUG_PORT:-9223}"
 CHROME_PUBLIC_DEBUG_PORT="${CHROME_PUBLIC_DEBUG_PORT:-9222}"
 BROWSER_USE_RPC_PORT="${BROWSER_USE_RPC_PORT:-8787}"
 CHROME_PROFILE_DIR="${CHROME_PROFILE_DIR:-/src/browser_data}"
+BROWSER_ENGINE="${BROWSER_ENGINE:-chromium}"
 
 MAX_RESTARTS="${MAX_RESTARTS:-10}"
 RESTART_WINDOW_SEC="${RESTART_WINDOW_SEC:-60}"
@@ -147,26 +148,38 @@ while true; do
 
   rm -f "${CHROME_PROFILE_DIR}/SingletonLock" "${CHROME_PROFILE_DIR}/SingletonCookie" "${CHROME_PROFILE_DIR}/SingletonSocket" 2>/dev/null || true
 
-  log "starting Chromium (local DevTools:${CHROME_LOCAL_DEBUG_PORT})"
-  chromium \
-    --no-sandbox \
-    --disable-dev-shm-usage \
-    --ozone-platform=x11 \
-    --remote-debugging-port="${CHROME_LOCAL_DEBUG_PORT}" \
-    --remote-debugging-address=127.0.0.1 \
-    --remote-allow-origins='*' \
-    --window-size=1280,720 \
-    --user-data-dir="${CHROME_PROFILE_DIR}" \
-    --disable-blink-features=AutomationControlled \
-    --no-first-run \
-    --disable-gpu \
-    --mute-audio \
-    --no-default-browser-check \
-    --disable-software-rasterizer \
-    --disable-features=site-per-process \
-    --disable-crash-reporter \
-    --disable-extensions \
-    --disable-sync &
+  case "${BROWSER_ENGINE,,}" in
+    chromium)
+      log "starting Chromium (local DevTools:${CHROME_LOCAL_DEBUG_PORT})"
+      chromium \
+        --no-sandbox \
+        --disable-dev-shm-usage \
+        --ozone-platform=x11 \
+        --remote-debugging-port="${CHROME_LOCAL_DEBUG_PORT}" \
+        --remote-debugging-address=127.0.0.1 \
+        --remote-allow-origins='*' \
+        --window-size=1280,720 \
+        --user-data-dir="${CHROME_PROFILE_DIR}" \
+        --disable-blink-features=AutomationControlled \
+        --no-first-run \
+        --disable-gpu \
+        --mute-audio \
+        --no-default-browser-check \
+        --disable-software-rasterizer \
+        --disable-features=site-per-process \
+        --disable-crash-reporter \
+        --disable-extensions \
+        --disable-sync &
+      ;;
+    cloak|cloakbrowser)
+      log "starting CloakBrowser (local DevTools:${CHROME_LOCAL_DEBUG_PORT})"
+      python3 -u /src/cloak_browser_launcher.py &
+      ;;
+    *)
+      log "fatal: unsupported BROWSER_ENGINE=${BROWSER_ENGINE}; expected chromium or cloak"
+      exit 1
+      ;;
+  esac
 
   CHROME_PID=$!
   wait "$CHROME_PID" || CHROME_EXIT=$?
@@ -183,7 +196,7 @@ while true; do
   fi
 
   RESTART_COUNT=$((RESTART_COUNT + 1))
-  log "Chromium exited with code=${CHROME_EXIT}; restart ${RESTART_COUNT}/${MAX_RESTARTS} in current window"
+  log "${BROWSER_ENGINE} exited with code=${CHROME_EXIT}; restart ${RESTART_COUNT}/${MAX_RESTARTS} in current window"
 
   if [ "$RESTART_COUNT" -ge "$MAX_RESTARTS" ]; then
     log "fatal: too many Chromium restarts in ${RESTART_WINDOW_SEC}s"
@@ -194,4 +207,3 @@ while true; do
   unset CHROME_EXIT
   unset CHROME_PID
 done
-

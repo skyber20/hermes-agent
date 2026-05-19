@@ -614,7 +614,7 @@ async def run_browser_task(task, run_id=None):
 
     try:
         logger.info("Creating Browser...")
-        _append_event(run_id, "setup", "Подключаюсь к Chromium через CDP.")
+        _append_event(run_id, "setup", "Подключаюсь к браузеру через CDP.")
         browser = Browser(cdp_url=cdp_url)
         logger.info("Browser created")
     except Exception as err:

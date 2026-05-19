@@ -16,6 +16,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     curl \
     ca-certificates \
+    fonts-noto-color-emoji \
+    fonts-freefont-ttf \
+    fonts-unifont \
+    fonts-ipafont-gothic \
+    fonts-wqy-zenhei \
+    fonts-tlwg-loma-otf \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
@@ -23,9 +29,13 @@ RUN mkdir -p /src/browser_data
 
 RUN python3 -m pip install --no-cache-dir --break-system-packages \
     "browser-use>=0.12.5" \
-    "langchain-openai>=0.3.0"
+    "langchain-openai>=0.3.0" \
+    "cloakbrowser[geoip]>=0.3.0"
+
+RUN python3 -m cloakbrowser install
 
 COPY entrypoint.sh /entrypoint.sh
+COPY cloak_browser_launcher.py /src/cloak_browser_launcher.py
 COPY browser_use_runner.py /src/browser_use_runner.py
 RUN chmod +x /entrypoint.sh
 

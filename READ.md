@@ -14,6 +14,42 @@ docker compose logs tunnel
 ```
 После команды логов листаешь терминал и ищешь ссылку https в рамке. Её вписываешь в переменную BROWSER_VIEW_URL.
 Чтобы увидеть действия агента, переходишь по данной сслыке и выбираешь vnc.html.
+
+## Выбор браузера
+
+Browser-use контейнер поддерживает два движка через одну и ту же CDP/noVNC схему:
+
+```env
+BROWSER_ENGINE=chromium
+```
+
+`chromium` — обычный локальный Chromium, используется по умолчанию.
+
+```env
+BROWSER_ENGINE=cloak
+```
+
+`cloak` — CloakBrowser stealth-режим для задач, где важны fingerprint,
+WebGL/Canvas/OS/CDP-сигналы и антибот-проверки. Telegram live-логи, noVNC,
+CDP-порт `9222` и browser-use RPC остаются теми же.
+
+Дополнительные настройки CloakBrowser в `.env`:
+
+```env
+CLOAK_HEADLESS=false
+CLOAK_HUMANIZE=true
+CLOAK_HUMAN_PRESET=default
+CLOAK_PROXY=
+CLOAK_GEOIP=false
+CLOAK_ARGS=
+```
+
+После смены `BROWSER_ENGINE` пересобери и перезапусти контейнеры:
+
+```commandline
+docker compose up -d --build
+```
+
 Далее в мессенджере просишь агента сделать что-то через tool browser-use.
 Во время выполнения Hermes будет обновлять одно progress-сообщение в Telegram:
 текущая страница, короткие действия, ошибки и просьба помочь, если замечена капча
